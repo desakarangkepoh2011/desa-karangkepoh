@@ -77,12 +77,10 @@ function App() {
   const layananItems = [
     'KK',
     'KTP',
-    'Akta kelahiran',
-    'Akta kematian',
-    'Akta Perceraian',
-    'Akta Pengangkatan anak',
-    'Perubahan data kependudukan',
-    'Perubahan data kewarganegaraan'
+    'KIA',
+    'Pindah Datang',
+    'Pindah Keluar',
+    'Kutipan Ke-2 (Akta Kelahiran)'
   ];
 
   return (
