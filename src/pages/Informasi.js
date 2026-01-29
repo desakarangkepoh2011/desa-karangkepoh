@@ -5,7 +5,7 @@ import '../index.css';
 const informasiData = {
   hero: {
     title: "Berita & Pengumuman",
-    description: "Informasi terkini Pemerintah Desa Karangkepoh."
+    description: "Informasi terkini Desa Karangkepoh."
   },
   berita: {
     title: "Kabar Desa",

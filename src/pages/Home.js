@@ -32,7 +32,6 @@ const homeData = {
   layananSection: {
     judul: "Layanan Administrasi",
     deskripsi: "Pilih layanan surat yang Anda butuhkan di bawah ini.",
-    // UPDATED: Menggunakan object { label, id } untuk mapping link
     list: [
       { label: "Kartu Keluarga", id: "kk" },
       { label: "Kartu Tanda Penduduk", id: "ktp" },

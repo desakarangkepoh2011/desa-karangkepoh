@@ -29,13 +29,9 @@ const layananData = {
           docs: ['KK Lama (Asli)', 'Dokumen pendukung (Ijazah/Akta/Buku Nikah)', 'Formulir Perubahan Data'],
           steps: ['Verifikasi bukti perubahan', 'Update data di SIAK', 'Cetak KK Baru']
         },
-        'Penghapusan Data': {
-          docs: ['KK Lama', 'Surat Kematian (jika meninggal) / Surat Pindah'],
+        'Penambahan dan Penghapusan Data': {
+          docs: ['KK Lama', 'Surat Kelahiran / Surat Pindah Datang', 'Surat Kematian (jika meninggal)'],
           steps: ['Verifikasi dokumen dasar', 'Update database desa', 'Cetak KK Baru']
-        },
-        'Penambahan Data': {
-          docs: ['KK Lama', 'Surat Kelahiran / Surat Pindah Datang'],
-          steps: ['Verifikasi berkas penambahan', 'Input anggota keluarga baru', 'Cetak KK']
         }
       }
     },
@@ -69,9 +65,9 @@ const layananData = {
       accent: 'pink',
       note: 'Segera urus sebelum bayi berusia 60 hari agar terhindar dari denda keterlambatan administratif.',
       attachments: [{ name: 'Formulir Akta Kelahiran', url: '/lampiran/lahir-form.pdf' }],
-      categories: ['Pencatatan Baru', 'Perubahan'],
+      categories: ['Baru', 'Perubahan'],
       requirements: {
-        'Pencatatan Baru': {
+        'Baru': {
           docs: ['Surat Ket. Lahir (Bidan/RS/Desa)', 'Buku Nikah Orang Tua (Legalisir)', 'KK & KTP Orang Tua', 'KTP 2 Orang Saksi'],
           steps: ['Isi formulir kelahiran', 'Verifikasi berkas di Desa', 'Input data kelahiran', 'Pencetakan Akta']
         },
@@ -103,9 +99,9 @@ const layananData = {
       accent: 'teal',
       note: 'Pastikan data anak sesuai dengan KK. Untuk anak > 5 tahun wajib melampirkan pas foto 4x6 (2 lembar).',
       attachments: [{ name: 'Formulir KIA', url: '/lampiran/kia-form.pdf' }],
-      categories: ['Pendaftaran KIA', 'Perubahan'],
+      categories: ['Baru', 'Perubahan'],
       requirements: {
-        'Pendaftaran KIA': {
+        'Baru': {
           docs: ['Fotokopi KK', 'Fotokopi Akta Kelahiran', 'Pas Foto 4x6 (jika > 5 tahun)'],
           steps: ['Pengajuan berkas kolektif/mandiri', 'Verifikasi data anak', 'Pencetakan KIA']
         },

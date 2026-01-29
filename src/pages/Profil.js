@@ -23,7 +23,6 @@ const profileData = {
       "Memberikan kemudahan ijin dan penyediaan lahan industri kepada investor untuk berinvestasi di Desa Karangkepoh."
     ]
   },
-  // Kategori dipisah: Struktural & Wilayah
   perangkatDesa: {
     struktural: [
       { name: "Sutarto", jabatan: "Kepala Desa", image: "https://ui-avatars.com/api/?name=Sutarto&background=16a34a&color=fff&size=128", isPrimary: true },
@@ -58,7 +57,6 @@ const profileData = {
   demografis: {
     penduduk: {
       total: "2.696",
-      satuan: "Jiwa",
       kk: "925",
       dusun: "4",
       note: "Rasio gender seimbang (±50:50)"
@@ -253,7 +251,7 @@ export default function Profil() {
                 <i className="fas fa-users"></i>
               </div>
               <h3 className="font-bold text-gray-800 text-lg mb-2">Total Penduduk</h3>
-              <p className="text-4xl font-bold text-desa-primary mb-2">{demografis.penduduk.total} <span className="text-base font-normal text-gray-500">{demografis.penduduk.satuan}</span></p>
+              <p className="text-4xl font-bold text-desa-primary mb-2">{demografis.penduduk.total} <span className="text-base font-normal text-gray-500">Jiwa</span></p>
               <div className="text-sm text-gray-600 space-y-1">
                 <p>Terdiri dari <strong>{demografis.penduduk.kk}</strong> Kepala Keluarga</p>
                 <p>Tersebar di <strong>{demografis.penduduk.dusun} Dusun</strong></p>

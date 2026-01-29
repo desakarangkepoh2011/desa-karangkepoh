@@ -40,7 +40,6 @@ const kontakData = {
       { hari: "Senin - Kamis", jam: "08.00 - 14.00 WIB" },
       { hari: "Jumat", jam: "08.00 - 11.00 WIB" }
     ],
-    // UPDATED: Link Embed Map dari User
     mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d346.5271219609976!2d110.67237546849056!3d-7.3580690263974695!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e7a748ee518d1fd%3A0x7e04f480b436e510!2sKantor%20Kepala%20Desa!5e1!3m2!1sid!2sid!4v1769477247786!5m2!1sid!2sid"
   }
 };
