@@ -1,10 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import '../index.css';
 
-// --- DATA CONFIGURATION ---
-const homeData = {
+// --- DEFAULT / FALLBACK DATA ---
+const defaultHomeData = {
   hero: {
-    image: "https://images.unsplash.com/photo-1500382017468-9049fed747ef?ixlib=rb-1.2.1&auto=format&fit=crop&w=1920&q=80",
+    image: "",
     preTitle: "Informasi & Layanan Desa",
     title: "Selamat Datang di",
     highlight: "Desa Karangkepoh",
@@ -12,22 +12,22 @@ const homeData = {
   },
   pengumuman: {
     badge: "TERBARU",
-    kategori: "Agenda Desa",
-    tanggal: "17 Januari 2026",
-    judul: "Musyawarah Perencanaan Pembangunan Desa (Musrenbang) Tahun 2026",
-    isi: "Pemerintah Desa Karangkepoh mengundang seluruh perwakilan masyarakat, Ketua RT/RW, dan Lembaga Desa untuk hadir dalam musyawarah penyusunan RKPDes. Partisipasi Anda sangat berarti bagi kemajuan desa kita.",
+    kategori: "LOADING...",
+    tanggal: "NOW",
+    judul: "Mohon Tunggu, Data Sedang Dimuat...",
+    isi: "Mohon bersabar sementara kami memuat informasi terbaru dari desa. Kami berkomitmen untuk memberikan informasi terkini secepat mungkin.",
     link: "/informasi#pengumuman"
   },
   videoProfil: {
     judul: "Profil Desa Kami",
     deskripsi: "Menelusuri keindahan alam, budaya, dan potensi ekonomi warga Desa Karangkepoh.",
-    youtubeSrc: "https://www.youtube.com/embed/WnCv6N0PrBs?si=BShYJXZKot6uDfEX"
+    youtubeSrc: ""
   },
   statistik: [
-    { label: "Total Penduduk", value: "2.696", icon: "users" },
-    { label: "Kepala Keluarga", value: "925", icon: "home" },
-    { label: "Luas (Ha)", value: "276,16", icon: "map" },
-    { label: "Wilayah Dusun", value: "4", icon: "map-marked-alt" }
+    { label: "Total Penduduk", value: "", icon: "users" },
+    { label: "Kepala Keluarga", value: "", icon: "home" },
+    { label: "Luas (Ha)", value: "", icon: "map" },
+    { label: "Wilayah Dusun", value: "", icon: "map-marked-alt" }
   ],
   layananSection: {
     judul: "Layanan Administrasi",
@@ -45,7 +45,112 @@ const homeData = {
   }
 };
 
+// --- REMOTE API ---
+const API_URL = 'https://desakarangkepoh2011.github.io/website-data/data/home.json';
+
+function formatDate(dateStr) {
+  try {
+    const d = new Date(dateStr);
+    return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  } catch {
+    return dateStr;
+  }
+}
+
+function formatNumberId(value) {
+  if (value == null) return value;
+  if (typeof value === 'number') return new Intl.NumberFormat('id-ID').format(value);
+  return value;
+}
+
+function truncateText(text, max = 220) {
+  if (!text) return '';
+  if (text.length <= max) return text;
+  return text.slice(0, max).trimEnd() + '…';
+}
+
+function normalizeApiData(api) {
+  if (!api) return defaultHomeData;
+
+  const hero = {
+    image: api.hero?.image || api.hero?.imageUrl || defaultHomeData.hero.image,
+    preTitle: api.hero?.pretitle || api.hero?.preTitle || defaultHomeData.hero.preTitle,
+    title: api.hero?.title || defaultHomeData.hero.title,
+    highlight: api.hero?.highlight || defaultHomeData.hero.highlight,
+    description: api.hero?.description || defaultHomeData.hero.description
+  };
+
+  const pengumuman = {
+    badge: api.pengumuman?.badge || defaultHomeData.pengumuman.badge,
+    kategori: api.pengumuman?.kategori || defaultHomeData.pengumuman.kategori,
+    tanggal: api.pengumuman?.tanggal ? formatDate(api.pengumuman.tanggal) : defaultHomeData.pengumuman.tanggal,
+    judul: api.pengumuman?.judul || defaultHomeData.pengumuman.judul,
+    isi: api.pengumuman?.isi || defaultHomeData.pengumuman.isi,
+    link: api.pengumuman?.link || defaultHomeData.pengumuman.link
+  };
+
+  const videoProfil = {
+    judul: api.videoProfil?.judul || defaultHomeData.videoProfil.judul,
+    deskripsi: api.videoProfil?.deskripsi || defaultHomeData.videoProfil.deskripsi,
+    youtubeSrc: api.videoProfil?.youtubeSrc
+  };
+
+  const statistik = (api.statistik || defaultHomeData.statistik).map((s, i) => ({
+    label: s.label || defaultHomeData.statistik[i]?.label || '',
+    value: formatNumberId(s.value ?? defaultHomeData.statistik[i]?.value),
+    icon: s.icon || defaultHomeData.statistik[i]?.icon || 'chart-bar'
+  }));
+
+  const layananSection = {
+    judul: api.layananSection?.judul || defaultHomeData.layananSection.judul,
+    deskripsi: api.layananSection?.deskripsi || defaultHomeData.layananSection.deskripsi,
+    list: (api.layananSection?.list || defaultHomeData.layananSection.list).map(item => ({
+      label: item.label,
+      id: item.id
+    }))
+  };
+
+  return { hero, pengumuman, videoProfil, statistik, layananSection };
+}
+
 export default function Home({ navigate }) {
+  const [homeData, setHomeData] = useState(defaultHomeData);
+
+  useEffect(() => {
+    let mounted = true;
+    let intervalId = null;
+
+    const fetchData = async () => {
+      try {
+        const response = await fetch(API_URL, {
+          redirect: 'follow',
+          method: 'GET',
+          cache: 'no-cache',
+          headers: {
+            'Content-Type': 'text/plain;charset=utf-8',
+          },
+        });
+
+        if (!response.ok) throw new Error('Network response was not ok');
+        const json = await response.json();
+        if (!mounted) return;
+        const normalized = normalizeApiData(json);
+        setHomeData(normalized);
+      } catch (error) {
+        console.error('Gagal mengambil data:', error);
+      }
+    };
+
+    fetchData();
+
+    const POLL_INTERVAL = 60000;
+    intervalId = setInterval(() => {
+      if (document.visibilityState === 'visible') fetchData();
+    }, POLL_INTERVAL);
+
+    return () => { mounted = false; if (intervalId) clearInterval(intervalId); };
+  }, []);
+
   const { hero, pengumuman, videoProfil, statistik, layananSection } = homeData;
 
   return (
@@ -85,10 +190,10 @@ export default function Home({ navigate }) {
                   </div>
 
                   <h3 className="text-2xl md:text-3xl font-bold text-gray-900 mb-4 leading-tight">{pengumuman.judul}</h3>
-                  <p className="text-gray-600 text-lg mb-8 leading-relaxed">{pengumuman.isi}</p>
+                  <p className="text-gray-600 text-lg mb-8 leading-relaxed" title={pengumuman.isi}>{truncateText(pengumuman.isi, 220)}</p>
 
                   <div className="flex flex-col sm:flex-row items-center gap-4 border-t border-gray-100 pt-6">
-                    <a href={pengumuman.link} onClick={(e) => { e.preventDefault(); navigate(pengumuman.link); }} className="btn btn-primary w-full sm:w-auto">Lihat lainnya</a>
+                    <a href={pengumuman.link} onClick={(e) => { e.preventDefault(); navigate(pengumuman.link); }} className="btn btn-primary w-full sm:w-auto">Lihat selengkapnya</a>
                   </div>
                 </div>
               </div>

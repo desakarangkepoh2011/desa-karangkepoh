@@ -1,51 +1,53 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import '../index.css';
 
-// --- DATA CONFIGURATION ---
-const kontakData = {
-  hero: {
-    title: "Hubungi Kami",
-    description: "Saluran informasi dan komunikasi resmi Pemerintah Desa Karangkepoh."
-  },
-  layananInfo: {
-    title: "Layanan Informasi",
-    description: "Butuh bantuan atau informasi pelayanan? Hubungi nomor resmi desa kami (Chat Only).",
-    phoneDisplay: "0812-3456-7890",
-    waLink: "https://wa.me/6281234567890"
-  },
-  mediaSosial: {
-    title: "Ikuti Media Sosial",
-    description: "Dapatkan update kegiatan, dokumentasi, dan berita terbaru melalui akun resmi kami.",
-    items: [
-      {
-        name: "Instagram",
-        url: "https://instagram.com",
-        icon: "fab fa-instagram",
-        colorClass: "hover:border-pink-600 hover:text-pink-600 hover:bg-pink-50"
-      },
-      {
-        name: "YouTube",
-        url: "https://youtube.com",
-        icon: "fab fa-youtube",
-        colorClass: "hover:border-red-600 hover:text-red-600 hover:bg-red-50"
-      }
-    ]
-  },
-  kantorDesa: {
-    title: "Kantor Kepala Desa Karangkepoh",
-    subtitle: "Pusat Pelayanan Administratif",
-    address: "Jalan Raya Karanggede - Gemolong, Desa Karangkepoh, Kec. Karanggede, Kab. Boyolali",
-    email: "desakarangkepoh1@gmail.com",
-    jamKerja: [
-      { hari: "Senin - Kamis", jam: "08.00 - 14.00 WIB" },
-      { hari: "Jumat", jam: "08.00 - 11.00 WIB" }
-    ],
-    mapUrl: "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d346.5271219609976!2d110.67237546849056!3d-7.3580690263974695!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e7a748ee518d1fd%3A0x7e04f480b436e510!2sKantor%20Kepala%20Desa!5e1!3m2!1sid!2sid!4v1769477247786!5m2!1sid!2sid"
-  }
-};
+const API_URL = 'https://desakarangkepoh2011.github.io/website-data/data/kontak.json';
 
 export default function Kontak() {
-  const { hero, layananInfo, mediaSosial, kantorDesa } = kontakData;
+  const [data, setData] = useState(null);
+
+  useEffect(() => {
+    let mounted = true;
+    let intervalId = null;
+
+    async function fetchData() {
+      try {
+        const res = await fetch(API_URL, { cache: 'no-cache' });
+        if (!res.ok) throw new Error('Network response was not ok');
+        const json = await res.json();
+        if (mounted && json) setData(json);
+      } catch (err) {
+        console.warn('Failed to fetch kontak.json', err);
+      }
+    }
+
+    fetchData();
+
+    const POLL_INTERVAL = 60000;
+    intervalId = setInterval(() => {
+      if (document.visibilityState === 'visible') fetchData();
+    }, POLL_INTERVAL);
+
+    return () => {
+      mounted = false;
+      if (intervalId) clearInterval(intervalId);
+    };
+  }, []);
+
+  if (!data) {
+    return (
+      <main className="min-h-screen bg-gray-50 text-gray-800">
+        <section className="container mx-auto px-4 py-12 max-w-5xl">
+          <div className="text-center text-gray-600">Memuat kontak...</div>
+        </section>
+      </main>
+    );
+  }
+
+  const { hero, layananInfo, mediaSosial, kantorDesa } = data;
+  const phoneDisplayStr = layananInfo && layananInfo.phoneDisplay != null ? String(layananInfo.phoneDisplay) : '';
+  const rawWa = layananInfo && layananInfo.waLink ? String(layananInfo.waLink) : '';
+  const waHref = rawWa.startsWith('http') ? rawWa : rawWa.startsWith('wa') ? `https://${rawWa}` : rawWa ? `https://${rawWa}` : '#';
 
   return (
     <main className="min-h-screen bg-gray-50 text-gray-800">
@@ -67,9 +69,9 @@ export default function Kontak() {
             <h2 className="text-2xl font-bold text-gray-900 mb-2">{layananInfo.title}</h2>
             <p className="text-gray-500 mb-6">{layananInfo.description}</p>
             <div className="bg-gray-50 rounded-xl p-4 mb-6 border border-gray-200">
-              <p className="text-3xl font-black text-gray-800 tracking-wider">{layananInfo.phoneDisplay}</p>
+              <p className="text-3xl font-black text-gray-800 tracking-wider">{phoneDisplayStr}</p>
             </div>
-            <a href={layananInfo.waLink} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center w-full bg-[var(--desa-primary)] hover:opacity-90 text-white font-bold py-3 px-6 rounded-lg transition shadow-md">
+            <a href={waHref} target="_blank" rel="noreferrer" className="inline-flex items-center justify-center w-full bg-[var(--desa-primary)] hover:opacity-90 text-white font-bold py-3 px-6 rounded-lg transition shadow-md">
               <i className="fab fa-whatsapp mr-2"></i> Chat WhatsApp Sekarang
             </a>
           </div>

@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 // --- DATA CONFIGURATION ---
-const profileData = {
+const defaultProfileData = {
   sejarah: {
-    image: "https://images.unsplash.com/photo-1597816827038-f86015b63795?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80",
+    image: "",
     title: "Sejarah Desa",
     content: [
       "Pada sekitar tahun 1912, wilayah Boyolali masih berada di bawah Kasunanan Surakarta dan di daerah Karanggede dibentuk tiga kademangan, yaitu Kademangan Jatitengah, Klodran, dan Blimbing. Kademangan Jatitengah dipimpin oleh Demang Gito Saronto (1912–1924) dengan wilayah bawahan beberapa dukuh, termasuk Karangkepoh.",
@@ -25,18 +25,18 @@ const profileData = {
   },
   perangkatDesa: {
     struktural: [
-      { name: "Sutarto", jabatan: "Kepala Desa", image: "https://ui-avatars.com/api/?name=Sutarto&background=16a34a&color=fff&size=128", isPrimary: true },
-      { name: "Achmad Kurniawan", jabatan: "Sekretaris Desa", image: "https://ui-avatars.com/api/?name=Achmad+Kurniawan&background=random&size=128" },
-      { name: "Esther Evayani", jabatan: "Kasi Pemerintahan", image: "https://ui-avatars.com/api/?name=Esther+Evyani&background=random&size=128" },
-      { name: "Ramelan", jabatan: "Kasi Kesejahteraan & Pelayanan", image: "https://ui-avatars.com/api/?name=Ramelan&background=random&size=128" },
-      { name: "Erny Yuliyanti", jabatan: "Kaur Umum & Perencanaan", image: "https://ui-avatars.com/api/?name=Erny+Yuliyanti&background=random&size=128" },
-      { name: "Suwarno", jabatan: "Kaur Keuangan", image: "https://ui-avatars.com/api/?name=Suwarno&background=random&size=128" }
+      { name: "Sutarto", jabatan: "Kepala Desa", image: "", isPrimary: true },
+      { name: "Achmad Kurniawan", jabatan: "Sekretaris Desa", image: "" },
+      { name: "Esther Evayani", jabatan: "Kasi Pemerintahan", image: "" },
+      { name: "Ramelan", jabatan: "Kasi Kesejahteraan & Pelayanan", image: "" },
+      { name: "Erny Yuliyanti", jabatan: "Kaur Umum & Perencanaan", image: "" },
+      { name: "Suwarno", jabatan: "Kaur Keuangan", image: "" }
     ],
     wilayah: [
-      { name: "Joko Santoso", jabatan: "Kadus I", image: "https://ui-avatars.com/api/?name=Joko+Santoso&background=random&size=128" },
-      { name: "Suyono", jabatan: "Kadus II", image: "https://ui-avatars.com/api/?name=Suyono&background=random&size=128" },
-      { name: "Tri Hartono", jabatan: "Kadus III", image: "https://ui-avatars.com/api/?name=Tri+Hartono&background=random&size=128" },
-      { name: "Esther Evayani", jabatan: "Kadus IV", image: "https://ui-avatars.com/api/?name=Esther+Evyani&background=random&size=128" }
+      { name: "Joko Santoso", jabatan: "Kadus I", image: "" },
+      { name: "Suyono", jabatan: "Kadus II", image: "" },
+      { name: "Tri Hartono", jabatan: "Kadus III", image: "" },
+      { name: "Esther Evayani", jabatan: "Kadus IV", image: "" }
     ]
   },
   geografis: {
@@ -74,8 +74,89 @@ const profileData = {
   }
 };
 
+// --- REMOTE API FOR PROFILE ---
+const API_PROFILE_URL = 'https://desakarangkepoh2011.github.io/website-data/data/profile.json';
+
+function ensureImage(url, name) {
+  if (url && url.trim()) return url;
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name || 'User')}&background=random&size=128`;
+}
+
+function normalizeProfileData(api) {
+  if (!api) return defaultProfileData;
+
+  const sejarah = {
+    image: api.sejarah?.image || defaultProfileData.sejarah.image,
+    title: api.sejarah?.title || defaultProfileData.sejarah.title,
+    content: api.sejarah?.content || defaultProfileData.sejarah.content
+  };
+
+  const visiMisi = {
+    visi: api.visiMisi?.visi || defaultProfileData.visiMisi.visi,
+    misi: api.visiMisi?.misi || defaultProfileData.visiMisi.misi
+  };
+
+  const perangkatDesaApi = api.perangkatDesa || {};
+  const struktural = (perangkatDesaApi.struktural || defaultProfileData.perangkatDesa.struktural).map((p, i) => ({
+    name: p.name || defaultProfileData.perangkatDesa.struktural[i]?.name || 'Nama',
+    jabatan: p.jabatan || defaultProfileData.perangkatDesa.struktural[i]?.jabatan || '',
+    image: ensureImage(p.image || '', p.name || defaultProfileData.perangkatDesa.struktural[i]?.name),
+    isPrimary: !!p.isPrimary
+  }));
+
+  const wilayah = (perangkatDesaApi.wilayah || defaultProfileData.perangkatDesa.wilayah).map((p, i) => ({
+    name: p.name || defaultProfileData.perangkatDesa.wilayah[i]?.name || 'Nama',
+    jabatan: p.jabatan || defaultProfileData.perangkatDesa.wilayah[i]?.jabatan || '',
+    image: ensureImage(p.image || '', p.name || defaultProfileData.perangkatDesa.wilayah[i]?.name)
+  }));
+
+  const geografis = {
+    description: api.geografis?.description || defaultProfileData.geografis.description,
+    batasWilayah: api.geografis?.batasWilayah || defaultProfileData.geografis.batasWilayah,
+    penggunaanLahan: api.geografis?.penggunaanLahan || defaultProfileData.geografis.penggunaanLahan
+  };
+
+  const demografis = {
+    penduduk: api.demografis?.penduduk || defaultProfileData.demografis.penduduk,
+    ekonomi: api.demografis?.ekonomi || defaultProfileData.demografis.ekonomi,
+    sdm: api.demografis?.sdm || defaultProfileData.demografis.sdm
+  };
+
+  return { sejarah, visiMisi, perangkatDesa: { struktural, wilayah }, geografis, demografis };
+}
+
 // --- COMPONENT ---
 export default function Profil() {
+  const [profileData, setProfileData] = useState(defaultProfileData);
+
+  useEffect(() => {
+    let mounted = true;
+    let intervalId = null;
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch(API_PROFILE_URL, {
+          method: 'GET',
+          redirect: 'follow',
+          cache: 'no-cache',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+        });
+        if (!res.ok) throw new Error('Network response was not ok');
+        const json = await res.json();
+        if (!mounted) return;
+        const normalized = normalizeProfileData(json);
+        setProfileData(normalized);
+      } catch (err) {
+        console.error('Gagal mengambil profile:', err);
+      }
+    };
+
+    fetchProfile();
+    const POLL_INTERVAL = 60000;
+    intervalId = setInterval(() => { if (document.visibilityState === 'visible') fetchProfile(); }, POLL_INTERVAL);
+
+    return () => { mounted = false; if (intervalId) clearInterval(intervalId); };
+  }, []);
+
   const { sejarah, visiMisi, perangkatDesa, geografis, demografis } = profileData;
 
   return (

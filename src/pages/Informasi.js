@@ -1,165 +1,93 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../index.css';
 
-// --- DATA CONFIGURATION ---
-const informasiData = {
-  hero: {
-    title: "Berita & Pengumuman",
-    description: "Informasi terkini Desa Karangkepoh."
-  },
-  berita: {
-    title: "Kabar Desa",
-    items: [
-      {
-        id: 1,
-        title: "Penyaluran Bantuan Langsung Tunai (BLT) Dana Desa Tahap I 2026",
-        date: "24 Jan 2026",
-        author: "Admin Desa",
-        category: "Sosial",
-        img: "https://images.unsplash.com/photo-1593113598332-cd288d649433?auto=format&fit=crop&w=600&q=80",
-        body: "Pemerintah Desa Karangkepoh telah menyalurkan BLT Dana Desa kepada 45 KPM. Diharapkan bantuan ini dapat membantu meringankan beban ekonomi warga."
-      },
-      {
-        id: 2,
-        title: "Kerja Bakti Masal: Pembersihan Saluran Irigasi",
-        date: "20 Jan 2026",
-        author: "Kadus II",
-        category: "Pembangunan",
-        img: "https://images.unsplash.com/photo-1590053160893-6c8454236a29?auto=format&fit=crop&w=600&q=80",
-        body: "Warga Dusun II bergotong royong membersihkan saluran irigasi pertanian untuk mengantisipasi musim hujan dan memastikan kelancaran air ke sawah."
-      },
-      {
-        id: 3,
-        title: "Musyawarah Desa Penetapan RKPDes Tahun 2026",
-        date: "15 Jan 2026",
-        author: "Sekdes",
-        category: "Pemerintahan",
-        img: "https://images.unsplash.com/photo-1577962917302-cd874c4e31d2?auto=format&fit=crop&w=600&q=80",
-        body: "Telah dilaksanakan Musdes Penetapan RKPDes 2026 yang dihadiri oleh BPD, Perangkat Desa, dan Tokoh Masyarakat. Prioritas pembangunan tahun ini adalah infrastruktur jalan usaha tani."
-      },
-      {
-        id: 4,
-        title: "Posyandu Balita & Lansia 'Melati' Dusun I",
-        date: "10 Jan 2026",
-        author: "Bidan Desa",
-        category: "Kesehatan",
-        img: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=600&q=80",
-        body: "Kegiatan rutin penimbangan balita dan pemeriksaan kesehatan lansia berjalan lancar. Tercatat 50 balita dan 30 lansia hadir dalam kegiatan ini."
-      },
-      {
-        id: 5,
-        title: "Pelatihan Pembuatan Pupuk Organik Bagi Kelompok Tani",
-        date: "05 Jan 2026",
-        author: "Kasi Kesejahteraan",
-        category: "Pemberdayaan",
-        img: "https://images.unsplash.com/photo-1625246333195-5848c4281413?auto=format&fit=crop&w=600&q=80",
-        body: "Untuk mengurangi ketergantungan pada pupuk kimia, Pemdes mengadakan pelatihan pembuatan pupuk organik padat dan cair."
-      },
-      {
-        id: 6,
-        title: "Kunjungan Camat Karanggede Monitoring Dana Desa",
-        date: "02 Jan 2026",
-        author: "Admin Desa",
-        category: "Pemerintahan",
-        img: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?auto=format&fit=crop&w=600&q=80",
-        body: "Camat Karanggede melakukan monitoring dan evaluasi terhadap pelaksanaan proyek pembangunan talud di Dusun III."
-      },
-      {
-        id: 7,
-        title: "Pengumuman Pembayaran PBB-P2 Tahun 2026",
-        date: "28 Des 2025",
-        author: "Kaur Keuangan",
-        category: "Pemerintahan",
-        img: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=600&q=80",
-        body: "SPPT PBB Tahun 2026 telah terbit. Warga dimohon segera melakukan pembayaran melalui petugas pungut di masing-masing dusun."
-      }
-    ]
-  },
-  pengumuman: {
-    title: "Pengumuman & Undangan",
-    items: [
-      {
-        id: 1,
-        title: "Undangan Musrenbangdes Tahun 2026",
-        date: "26 Jan 2026",
-        type: "Undangan",
-        desc: "Mengharap kehadiran Bapak/Ibu Saudara pada acara Musyawarah Perencanaan Pembangunan Desa.",
-        linkText: "Download Undangan (PDF)",
-        linkUrl: "#"
-      },
-      {
-        id: 2,
-        title: "Jadwal Piket Siskamling Terbaru",
-        date: "20 Jan 2026",
-        type: "Info",
-        desc: "Berikut adalah jadwal ronda malam untuk periode Januari - Juni 2026.",
-        linkText: "Lihat Jadwal (PDF)",
-        linkUrl: "#"
-      },
-      {
-        id: 3,
-        title: "Daftar Penerima Bantuan Bibit Jagung",
-        date: "15 Jan 2026",
-        type: "Info",
-        desc: "Daftar nama anggota kelompok tani yang berhak menerima bantuan bibit jagung hibrida.",
-        linkText: "Cek Data (Excel)",
-        linkUrl: "#"
-      },
-      {
-        id: 4,
-        title: "Lowongan Perangkat Desa: Kadus IV",
-        date: "10 Jan 2026",
-        type: "Lowongan",
-        desc: "Dibuka pendaftaran seleksi calon Perangkat Desa untuk formasi Kepala Dusun IV.",
-        linkText: "Syarat & Ketentuan",
-        linkUrl: "#"
-      },
-      {
-        id: 5,
-        title: "Himbauan Waspada Demam Berdarah",
-        date: "01 Jan 2026",
-        type: "Himbauan",
-        desc: "Surat Edaran Kepala Desa terkait gerakan 3M Plus untuk mencegah penyebaran DBD.",
-        linkText: "Baca Surat Edaran",
-        linkUrl: "#"
-      },
-       {
-        id: 6,
-        title: "Laporan Realisasi APBDes 2025",
-        date: "31 Des 2025",
-        type: "Laporan",
-        desc: "Transparansi Anggaran: Laporan pertanggungjawaban realisasi APBDes Tahun Anggaran 2025.",
-        linkText: "Download Laporan",
-        linkUrl: "#"
-      }
-    ]
+const API_URL = 'https://desakarangkepoh2011.github.io/website-data/data/informasi.json';
+
+function formatDateString(str) {
+  if (!str) return '';
+  const parsed = Date.parse(str);
+  if (!isNaN(parsed)) {
+    return new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(parsed));
   }
-};
+
+  const m = str.match(/(\d{1,2})\s+([^\d]+?)\s+(\d{4})/);
+  if (!m) return str;
+  const day = parseInt(m[1], 10);
+  let monthToken = m[2].trim().replace('.', '').toLowerCase();
+
+  const monthMap = {
+    jan: 0, januari: 0,
+    feb: 1, februari: 1,
+    mar: 2, maret: 2,
+    apr: 3, april: 3,
+    mei: 4, may: 4,
+    jun: 5, juni: 5,
+    jul: 6, juli: 6,
+    aug: 7, agt: 7, agustus: 7, august: 7,
+    sep: 8, sept: 8, september: 8,
+    oct: 9, okt: 9, oktober: 9, october: 9,
+    nov: 10, november: 10,
+    dec: 11, des: 11, desember: 11, december: 11
+  };
+
+  const monthIndex = monthMap[monthToken];
+  if (monthIndex === undefined) return str;
+  const year = parseInt(m[3], 10);
+  const date = new Date(year, monthIndex, day);
+  return new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
+}
 
 export default function Informasi() {
-  // Mengambil data dari object konfigurasi
-  const { hero, berita, pengumuman } = informasiData;
-  
-  // State untuk Pagination
+  const [data, setData] = useState(null);
   const [newsPage, setNewsPage] = useState(1);
   const [annoPage, setAnnoPage] = useState(1);
   const [modal, setModal] = useState(null);
 
-  // Konfigurasi Limit per Halaman
   const newsLimit = 6;
   const annoLimit = 5;
 
-  // Hitung Total Halaman
-  const totalNewsPages = Math.ceil(berita.items.length / newsLimit);
-  const totalAnnoPages = Math.ceil(pengumuman.items.length / annoLimit);
+  useEffect(() => {
+    let mounted = true;
+    let intervalId = null;
 
-  // Handler Ganti Halaman
-  const showNews = (p) => setNewsPage(Math.max(1, Math.min(totalNewsPages, p)));
-  const showAnno = (p) => setAnnoPage(Math.max(1, Math.min(totalAnnoPages, p)));
+    async function fetchData() {
+      try {
+        const res = await fetch(API_URL, { cache: 'no-cache' });
+        if (!res.ok) throw new Error('Network response was not ok');
+        const json = await res.json();
+        if (mounted && json) setData(json);
+      } catch (err) {
+        console.warn('Failed to fetch informasi.json', err);
+      }
+    }
 
-  // Slice Data untuk Tampilan saat ini
-  const newsSlice = berita.items.slice((newsPage - 1) * newsLimit, newsPage * newsLimit);
-  const annoSlice = pengumuman.items.slice((annoPage - 1) * annoLimit, annoPage * annoLimit);
+    fetchData();
+    const POLL_INTERVAL = 60000;
+    intervalId = setInterval(() => { if (document.visibilityState === 'visible') fetchData(); }, POLL_INTERVAL);
+
+    return () => { mounted = false; if (intervalId) clearInterval(intervalId); };
+  }, []);
+
+  if (!data) {
+    return (
+      <main className="min-h-screen bg-gray-50 text-gray-800">
+        <section className="container mx-auto px-4 py-12 max-w-6xl">
+          <div className="text-center text-gray-600">Memuat informasi...</div>
+        </section>
+      </main>
+    );
+  }
+
+  const { hero, berita, pengumuman } = data;
+
+  const totalNewsPages = Math.ceil((berita && berita.items ? berita.items.length : 0) / newsLimit);
+  const totalAnnoPages = Math.ceil((pengumuman && pengumuman.items ? pengumuman.items.length : 0) / annoLimit);
+
+  const showNews = (p) => setNewsPage(Math.max(1, Math.min(totalNewsPages || 1, p)));
+  const showAnno = (p) => setAnnoPage(Math.max(1, Math.min(totalAnnoPages || 1, p)));
+
+  const newsSlice = (berita && berita.items ? berita.items : []).slice((newsPage - 1) * newsLimit, newsPage * newsLimit);
+  const annoSlice = (pengumuman && pengumuman.items ? pengumuman.items : []).slice((annoPage - 1) * annoLimit, annoPage * annoLimit);
 
   return (
     <main className="min-h-screen bg-gray-50 text-gray-800">
@@ -188,7 +116,7 @@ export default function Informasi() {
                 </div>
                 <div className="p-5">
                   <div className="text-xs text-gray-400 mb-2 flex items-center gap-2">
-                    <span><i className="far fa-calendar mr-1"></i> {item.date}</span>
+                    <span><i className="far fa-calendar mr-1"></i> {formatDateString(item.date)}</span>
                     <span>•</span>
                     <span>{item.author}</span>
                   </div>
@@ -235,7 +163,7 @@ export default function Informasi() {
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <span className="bg-red-100 text-red-600 text-[10px] font-bold px-2 py-0.5 rounded uppercase">{a.type || 'Info'}</span>
-                    <span className="text-xs text-gray-400 font-medium">{a.date}</span>
+                    <span className="text-xs text-gray-400 font-medium">{formatDateString(a.date)}</span>
                   </div>
                   <h4 className="font-bold text-gray-800 text-lg group-hover:text-[var(--desa-primary)] transition">{a.title}</h4>
                   <p className="text-sm text-gray-600 mt-1">{a.desc}</p>
@@ -285,7 +213,7 @@ export default function Informasi() {
               <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
                 <span className="font-semibold bg-gray-100 px-2 py-1 rounded">{modal.category}</span>
                 <span>•</span>
-                <span>{modal.date}</span>
+                <span>{formatDateString(modal.date)}</span>
                 <span>•</span>
                 <span>{modal.author}</span>
               </div>

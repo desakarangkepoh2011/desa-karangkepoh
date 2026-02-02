@@ -1,193 +1,60 @@
 import React, { useState, useRef, useEffect } from 'react';
 import '../index.css';
 
-// --- DATA CONFIGURATION ---
-const layananData = {
-  hero: {
-    title: "Layanan Kependudukan",
-    description: "Informasi persyaratan, prosedur, dan alur pengurusan dokumen administrasi Desa Karangkepoh."
-  },
-  services: [
-    {
-      id: 'kk',
-      title: 'Kartu Keluarga (KK)',
-      subtitle: 'Buat Baru / Pecah KK / Hilang',
-      accent: 'blue',
-      note: 'Jika KK hilang, wajib menyertakan Surat Keterangan Kehilangan dari Kepolisian (Polsek).',
-      attachments: [{ name: 'Contoh Form KK', url: '/lampiran/kk-form.pdf' }],
-      categories: ['Baru', 'Hilang/Rusak', 'Perubahan Elemen Data', 'Penghapusan Data', 'Penambahan Data'],
-      requirements: {
-        'Baru': {
-          docs: ['Surat Pengantar RT/RW', 'Formulir F-1.01', 'KK Lama (jika ada)', 'Buku Nikah/Akta Cerai'],
-          steps: ['Pemohon meminta pengantar RT/RW', 'Verifikasi berkas di Kantor Desa', 'Penyusunan draft KK Baru', 'Proses cetak di Kecamatan/Disdukcapil']
-        },
-        'Hilang/Rusak': {
-          docs: ['Surat Keterangan Kehilangan (Polisi)', 'Formulir F-1.01', 'KTP-el Pelapor'],
-          steps: ['Lapor kehilangan ke Polisi', 'Pengajuan cetak ulang di Desa', 'Verifikasi data', 'Pencetakan KK']
-        },
-        'Perubahan Elemen Data': {
-          docs: ['KK Lama (Asli)', 'Dokumen pendukung (Ijazah/Akta/Buku Nikah)', 'Formulir Perubahan Data'],
-          steps: ['Verifikasi bukti perubahan', 'Update data di SIAK', 'Cetak KK Baru']
-        },
-        'Penambahan dan Penghapusan Data': {
-          docs: ['KK Lama', 'Surat Kelahiran / Surat Pindah Datang', 'Surat Kematian (jika meninggal)'],
-          steps: ['Verifikasi dokumen dasar', 'Update database desa', 'Cetak KK Baru']
-        }
-      }
-    },
-    {
-      id: 'ktp',
-      title: 'KTP Elektronik (KTP-el)',
-      subtitle: 'Perekaman Baru / Cetak Ulang',
-      accent: 'desa',
-      note: 'Saat foto perekaman, wajib menggunakan pakaian sopan berkerah (Kemeja/Batik).',
-      attachments: [{ name: 'Formulir KTP', url: '/lampiran/ktp-form.pdf' }],
-      categories: ['Baru', 'Rusak/Hilang', 'Perubahan Data'],
-      requirements: {
-        'Baru': {
-          docs: ['Berusia minimal 17 tahun', 'Fotokopi KK Terbaru', 'Fotokopi Akta Kelahiran/Ijazah'],
-          steps: ['Daftar antrian perekaman', 'Verifikasi data biometrik', 'Foto & Sidik Jari', 'Tunggu info pengambilan']
-        },
-        'Rusak/Hilang': {
-          docs: ['Surat Ket. Kehilangan (jika hilang)', 'Fisik KTP (jika rusak)', 'Fotokopi KK'],
-          steps: ['Lapor ke Desa', 'Pengajuan cetak ulang', 'Proses di Kecamatan']
-        },
-        'Perubahan Data': {
-          docs: ['KK Terbaru (sudah diubah datanya)', 'KTP Lama'],
-          steps: ['Pastikan data KK sudah update', 'Ajukan cetak KTP baru sesuai KK']
-        }
-      }
-    },
-    {
-      id: 'lahir',
-      title: 'Akta Kelahiran',
-      subtitle: 'Pencatatan Bayi Baru Lahir',
-      accent: 'pink',
-      note: 'Segera urus sebelum bayi berusia 60 hari agar terhindar dari denda keterlambatan administratif.',
-      attachments: [{ name: 'Formulir Akta Kelahiran', url: '/lampiran/lahir-form.pdf' }],
-      categories: ['Baru', 'Perubahan'],
-      requirements: {
-        'Baru': {
-          docs: ['Surat Ket. Lahir (Bidan/RS/Desa)', 'Buku Nikah Orang Tua (Legalisir)', 'KK & KTP Orang Tua', 'KTP 2 Orang Saksi'],
-          steps: ['Isi formulir kelahiran', 'Verifikasi berkas di Desa', 'Input data kelahiran', 'Pencetakan Akta']
-        },
-        'Perubahan': {
-          docs: ['Penetapan Pengadilan (untuk ganti nama)', 'Akta Lama', 'KK & KTP'],
-          steps: ['Verifikasi penetapan hukum', 'Pengajuan perubahan akta']
-        }
-      }
-    },
-    {
-      id: 'mati',
-      title: 'Akta Kematian',
-      subtitle: 'Laporan Warga Meninggal',
-      accent: 'gray',
-      note: 'Penting untuk urusan waris, klaim asuransi, dan validasi data pemilih.',
-      attachments: [{ name: 'Formulir Akta Kematian', url: '/lampiran/mati-form.pdf' }],
-      categories: ['Laporan Kematian'],
-      requirements: {
-        'Laporan Kematian': {
-          docs: ['Surat Keterangan Kematian (RS/Desa)', 'KTP-el Asli Jenazah (Ditarik)', 'KK Asli (untuk update)', 'KTP Pelapor'],
-          steps: ['Lapor kematian ke RT/Desa', 'Penerbitan Surat Kematian Desa', 'Penarikan KTP Jenazah', 'Pencetakan Akta Kematian']
-        }
-      }
-    },
-    {
-      id: 'kia',
-      title: 'KIA (Kartu Identitas Anak)',
-      subtitle: 'Pendaftaran / Perubahan',
-      accent: 'teal',
-      note: 'Pastikan data anak sesuai dengan KK. Untuk anak > 5 tahun wajib melampirkan pas foto 4x6 (2 lembar).',
-      attachments: [{ name: 'Formulir KIA', url: '/lampiran/kia-form.pdf' }],
-      categories: ['Baru', 'Perubahan'],
-      requirements: {
-        'Baru': {
-          docs: ['Fotokopi KK', 'Fotokopi Akta Kelahiran', 'Pas Foto 4x6 (jika > 5 tahun)'],
-          steps: ['Pengajuan berkas kolektif/mandiri', 'Verifikasi data anak', 'Pencetakan KIA']
-        },
-        'Perubahan': {
-          docs: ['KIA Lama', 'KK Terbaru', 'Dokumen pendukung perubahan'],
-          steps: ['Verifikasi data', 'Cetak ulang KIA']
-        }
-      }
-    },
-    {
-      id: 'pindah_datang',
-      title: 'Pindah Datang',
-      subtitle: 'Pelaporan Pindah Datang',
-      accent: 'orange',
-      note: 'Wajib lapor 1x24 jam setelah kedatangan.',
-      attachments: [{ name: 'Formulir Pindah Datang', url: '/lampiran/pindah-datang.pdf' }],
-      categories: ['Pindah Datang'],
-      requirements: {
-        'Pindah Datang': {
-          docs: ['SKPWNI (Surat Pindah) dari daerah asal', 'KTP & KK Penjamin (jika numpang KK)', 'Surat Domisili'],
-          steps: ['Lapor ke RT/RW setempat', 'Serahkan berkas pindah ke Desa', 'Penerbitan KK Baru domisili sini']
-        }
-      }
-    },
-    {
-      id: 'pindah_keluar',
-      title: 'Pindah Keluar',
-      subtitle: 'Pengajuan Pindah Keluar',
-      accent: 'red',
-      note: 'Setelah surat pindah terbit, KTP & KK lama akan ditarik/dinonaktifkan.',
-      attachments: [{ name: 'Formulir Pindah Keluar', url: '/lampiran/pindah-keluar.pdf' }],
-      categories: ['Pindah Keluar'],
-      requirements: {
-        'Pindah Keluar': {
-          docs: ['Surat Pengantar RT/RW', 'KK Asli', 'KTP Asli', 'Alamat Lengkap Tujuan Pindah'],
-          steps: ['Verifikasi berkas di Desa', 'Isi formulir pindah (F-1.03)', 'Penerbitan SKPWNI oleh Disdukcapil']
-        }
-      }
-    },
-    {
-      id: 'kutipan_lahir_kedua',
-      title: 'Kutipan Ke-2 (Akta Kelahiran)',
-      subtitle: 'Akta Hilang / Rusak',
-      accent: 'violet',
-      note: 'Proses ini membutuhkan surat kehilangan dari kepolisian.',
-      attachments: [{ name: 'Formulir Kutipan Akta', url: '/lampiran/kutipan-akta.pdf' }],
-      categories: ['Kutipan Ke-2'],
-      requirements: {
-        'Kutipan Ke-2': {
-          docs: ['Surat Kehilangan Polisi (jika hilang)', 'Fisik Akta Rusak (jika rusak)', 'Fotokopi KK & KTP'],
-          steps: ['Verifikasi dokumen', 'Cek database kelahiran', 'Pencetakan Salinan/Kutipan Kedua']
-        }
-      }
-    }
-  ]
-};
+const API_URL = 'https://desakarangkepoh2011.github.io/website-data/data/layanan.json';
 
 export default function Layanan() {
   const [open, setOpen] = useState(null);
   const [selectedCategories, setSelectedCategories] = useState({});
+  const [data, setData] = useState(null);
 
-  // Initialize default categories and handle Deep Linking
   useEffect(() => {
-    // 1. Set default categories
-    const defaults = {};
-    layananData.services.forEach(service => {
-      if (service.categories && service.categories.length > 0) {
-        defaults[service.id] = service.categories[0];
-      }
-    });
-    setSelectedCategories(defaults);
+    let mounted = true;
+    let intervalId = null;
 
-    // 2. Handle URL Query Param (e.g., /layanan?open=kk)
+    async function fetchData() {
+      try {
+        const res = await fetch(API_URL, { cache: 'no-cache' });
+        if (!res.ok) throw new Error('Network response was not ok');
+        const json = await res.json();
+        if (mounted && json) {
+          setData(json);
+          const defaults = {};
+          if (Array.isArray(json.services)) {
+            json.services.forEach((service) => {
+              if (service.categories) {
+                defaults[service.id] = Array.isArray(service.categories)
+                  ? service.categories[0]
+                  : service.categories;
+              }
+            });
+          }
+          setSelectedCategories(prev => (Object.keys(prev || {}).length ? prev : defaults));
+        }
+      } catch (err) {
+        console.warn('Failed to fetch layanan.json, using fallback data.', err);
+      }
+    }
+
+    fetchData();
+    const POLL_INTERVAL = 60000;
+    intervalId = setInterval(() => { if (document.visibilityState === 'visible') fetchData(); }, POLL_INTERVAL);
+
+    return () => { mounted = false; if (intervalId) clearInterval(intervalId); };
+  }, []);
+
+  useEffect(() => {
+    if (!data || !Array.isArray(data.services)) return;
     const params = new URLSearchParams(window.location.search);
     const openId = params.get('open');
     if (openId) {
       setOpen(openId);
-      // Wait a bit for DOM to render then scroll
       setTimeout(() => {
         const element = document.getElementById(openId);
-        if (element) {
-          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+        if (element) element.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }, 500);
     }
-  }, []);
+  }, [data]);
 
   function toggle(id) {
     setOpen(prev => (prev === id ? null : id));
@@ -197,23 +64,33 @@ export default function Layanan() {
     setSelectedCategories(prev => ({ ...prev, [id]: value }));
   }
 
+  if (!data) {
+    return (
+      <main className="min-h-screen bg-gray-50 text-gray-800">
+        <section className="container mx-auto px-4 py-12 max-w-5xl">
+          <div className="text-center text-gray-600">Memuat data layanan...</div>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-gray-50 text-gray-800">
       {/* HEADER */}
       <header className="relative bg-gradient-to-r from-[var(--desa-primary)] to-emerald-500 py-16 px-6 text-center text-white overflow-hidden shadow-lg">
         <div className="relative z-10 max-w-3xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight drop-shadow-md">{layananData.hero.title}</h1>
-          <p className="text-emerald-50 text-lg md:text-xl font-light opacity-90">{layananData.hero.description}</p>
+          <h1 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight drop-shadow-md">{data.hero.title}</h1>
+          <p className="text-emerald-50 text-lg md:text-xl font-light opacity-90">{data.hero.description}</p>
         </div>
       </header>
 
       {/* SERVICES LIST */}
       <section className="container mx-auto px-4 py-12 max-w-5xl -mt-8 relative z-20">
         <div className="grid gap-5">
-          {layananData.services.map((service) => (
+          {data.services && data.services.map((service) => (
             <ServiceCard
               key={service.id}
-              id={service.id} // Passing ID for HTML attribute
+              id={service.id}
               open={open === service.id}
               onToggle={() => toggle(service.id)}
               data={service}
@@ -227,35 +104,30 @@ export default function Layanan() {
   );
 }
 
-// --- REUSABLE COMPONENT ---
 function ServiceCard({ id, open, onToggle, data, selectedCategory, onCategoryChange }) {
   const contentRef = useRef(null);
   const [showLinks, setShowLinks] = useState(false);
   
-  // Dynamic styling classes
   const iconBgClass = `bg-${data.accent}-50`;
   const iconTextClass = `text-${data.accent}-600`;
   const chevronRotate = open ? 'rotate-180' : '';
   const iconWrapperClass = `w-14 h-14 rounded-2xl ${iconBgClass} ${iconTextClass} flex items-center justify-center text-2xl shadow-sm group-hover:scale-110 transition-transform duration-300`;
   const headerTextClass = `flex items-center text-${data.accent}-700 font-bold mb-4 uppercase text-xs tracking-wider`;
 
-  // Determine current requirements based on selection
   const currentReqs = data.requirements[selectedCategory];
 
   useEffect(() => {
     const el = contentRef.current;
     if (!el) return;
     
-    // Calculate Height for Accordion Animation
     if (open) {
       el.style.maxHeight = el.scrollHeight + 'px';
     } else {
       el.style.maxHeight = '0px';
     }
-  }, [open, selectedCategory, showLinks]); // Recalculate if these change
+  }, [open, selectedCategory, showLinks]);
 
   return (
-    // UPDATED: Added id={id} to the outer div for scrolling
     <div id={id} className="group bg-white rounded-xl shadow-md border-l-4 hover:shadow-xl transition-all duration-300 animate-fade-in-up">
       
       {/* CARD HEADER */}
@@ -287,9 +159,14 @@ function ServiceCard({ id, open, onToggle, data, selectedCategory, onCategoryCha
                 onChange={(e) => onCategoryChange(e.target.value)}
                 className="w-full border border-gray-300 rounded-lg p-2.5 text-sm bg-white focus:ring-2 focus:ring-desa-primary focus:border-desa-primary appearance-none shadow-sm"
               >
-                {data.categories.map((opt) => (
-                  <option key={opt} value={opt}>{opt}</option>
-                ))}
+                    <option value="" disabled>Pilih...</option>
+                    {Array.isArray(data.categories) ? (
+                      data.categories.map((opt) => (
+                        <option key={opt} value={opt}>{opt}</option>
+                      ))
+                    ) : (
+                      <option value={data.categories}>{data.categories}</option>
+                    )}
               </select>
               <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-gray-500">
                 <i className="fas fa-chevron-down text-xs"></i>

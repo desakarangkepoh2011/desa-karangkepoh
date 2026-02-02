@@ -19,13 +19,35 @@ function useOutsideClick(refs, handler) {
 
 function App() {
   const layananRef = useRef(null);
+  const [kontakData, setKontakData] = useState(null);
+  const KONTAK_API = 'https://desakarangkepoh2011.github.io/website-data/data/kontak.json';
+  
+  useEffect(() => {
+    let mounted = true;
+    let intervalId = null;
 
+    async function fetchKontak() {
+      try {
+        const res = await fetch(KONTAK_API, { cache: 'no-cache' });
+        if (!res.ok) throw new Error('Network response was not ok');
+        const json = await res.json();
+        if (mounted) setKontakData(json);
+      } catch (err) {
+        console.warn('Failed to fetch kontak.json', err);
+      }
+    }
+
+    fetchKontak();
+    const POLL_INTERVAL = 60000;
+    intervalId = setInterval(() => { if (document.visibilityState === 'visible') fetchKontak(); }, POLL_INTERVAL);
+
+    return () => { mounted = false; if (intervalId) clearInterval(intervalId); };
+  }, []);
   const [route, setRoute] = useState(window.location.pathname || '/');
 
   useEffect(() => {
     function onPop() {
       setRoute(window.location.pathname || '/');
-      // if there's a hash on popstate, attempt to scroll to it
       if (window.location.hash) {
         const id = window.location.hash.slice(1);
         setTimeout(() => {
@@ -39,12 +61,10 @@ function App() {
   }, []);
 
   function navigate(to) {
-    // Parse target URL so we separate pathname and hash
     const url = new URL(to, window.location.origin);
     const targetPath = url.pathname || '/';
     const targetHash = url.hash || '';
 
-    // if pathname and hash are unchanged, do nothing
     if (targetPath === window.location.pathname && targetHash === window.location.hash) return;
 
     window.history.pushState({}, '', to);
@@ -63,7 +83,6 @@ function App() {
 
   useOutsideClick([layananRef], () => {});
 
-  // on first mount, if URL contains a hash, scroll to it
   useEffect(() => {
     if (window.location.hash) {
       const id = window.location.hash.slice(1);
@@ -141,9 +160,37 @@ function App() {
 
           <div className="bg-gray-800/40 p-4 rounded-lg">
             <h4 className="text-lg font-semibold mb-3">Kontak & Informasi</h4>
-            <p className="text-sm text-gray-300 mb-2"><strong>Alamat:</strong> Jl. Raya Karangkepoh No.1, Kecamatan, Kabupaten</p>
-            <p className="text-sm text-gray-300 mb-2"><strong>Telepon / WA:</strong> <a href="https://wa.me/6281234567890" className="text-emerald-300 hover:underline">+62 812-3456-7890</a></p>
-            <p className="text-sm text-gray-300 mb-4"><strong>Jam Layanan:</strong><br/>Senin - Jumat: 08.00 - 15.00<br/>Sabtu: 08.00 - 12.00</p>
+            {kontakData && kontakData.kantorDesa ? (
+              (() => {
+                const kantor = kontakData.kantorDesa;
+                const layanan = kontakData.layananInfo || {};
+                const phoneDisplayStr = layanan && layanan.phoneDisplay != null ? String(layanan.phoneDisplay) : '';
+                let waHref = '#';
+                if (layanan && layanan.waLink) {
+                  const raw = String(layanan.waLink);
+                  waHref = raw.startsWith('http') ? raw : raw.startsWith('wa') ? `https://${raw}` : `https://${raw}`;
+                } else if (phoneDisplayStr) {
+                  let num = phoneDisplayStr;
+                  if (num.startsWith('+')) num = num.slice(1);
+                  if (num.startsWith('0')) num = '62' + num.slice(1);
+                  waHref = `https://wa.me/${num}`;
+                }
+
+                return (
+                  <>
+                    <p className="text-sm text-gray-300 mb-2"><strong>Alamat:</strong> {kantor.address}</p>
+                    <p className="text-sm text-gray-300 mb-2"><strong>Telepon / WA:</strong> <a href={waHref} className="text-emerald-300 hover:underline" target="_blank" rel="noreferrer">{phoneDisplayStr || kantor.email}</a></p>
+                    <p className="text-sm text-gray-300 mb-4"><strong>Jam Layanan:</strong><br/>{(kantor.jamKerja || []).map((j, idx) => (<span key={idx}>{j.hari}: {j.jam}{idx !== (kantor.jamKerja.length - 1) ? <br/> : null}</span>))}</p>
+                  </>
+                );
+              })()
+            ) : (
+              <>
+                <p className="text-sm text-gray-300 mb-2"><strong>Alamat:</strong> Jl. Raya Karangkepoh No.1, Kecamatan, Kabupaten</p>
+                <p className="text-sm text-gray-300 mb-2"><strong>Telepon / WA:</strong> <a href="https://wa.me/6281234567890" className="text-emerald-300 hover:underline">+62 812-3456-7890</a></p>
+                <p className="text-sm text-gray-300 mb-4"><strong>Jam Layanan:</strong><br/>Senin - Kamis: 08.00 - 14.00<br/>Jumat: 08.00 - 11.00</p>
+              </>
+            )}
 
             <div className="border-t border-gray-700 pt-3">
               <h5 className="text-sm font-semibold mb-2">Quick Links</h5>
