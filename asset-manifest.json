@@ -1,15 +1,15 @@
 {
   "files": {
     "main.css": "/desa-karangkepoh/static/css/main.9ec76a92.css",
-    "main.js": "/desa-karangkepoh/static/js/main.7b512ed7.js",
+    "main.js": "/desa-karangkepoh/static/js/main.183cabd2.js",
     "static/js/453.97659429.chunk.js": "/desa-karangkepoh/static/js/453.97659429.chunk.js",
     "index.html": "/desa-karangkepoh/index.html",
     "main.9ec76a92.css.map": "/desa-karangkepoh/static/css/main.9ec76a92.css.map",
-    "main.7b512ed7.js.map": "/desa-karangkepoh/static/js/main.7b512ed7.js.map",
+    "main.183cabd2.js.map": "/desa-karangkepoh/static/js/main.183cabd2.js.map",
     "453.97659429.chunk.js.map": "/desa-karangkepoh/static/js/453.97659429.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.9ec76a92.css",
-    "static/js/main.7b512ed7.js"
+    "static/js/main.183cabd2.js"
   ]
 }
