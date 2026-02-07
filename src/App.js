@@ -20,12 +20,43 @@ function useOutsideClick(refs, handler) {
 }
 
 function App() {
-  const getRoute = () => window.location.hash.replace('#', '') || '/';
+  const getRoute = () => {
+    const raw = window.location.hash.replace(/^#/, '') || '/';
+    const [path] = raw.split('#');
+    return path || '/';
+  };
+
   const [route, setRoute] = useState(getRoute());
 
   useEffect(() => {
-    const onHashChange = () => { setRoute(getRoute()); window.scrollTo(0,0); };
+    const onHashChange = () => {
+      const raw = window.location.hash.replace(/^#/, '');
+      const [path, frag] = raw.split('#');
+      setRoute(path || '/');
+      if (frag) {
+        // retry scroll for a short period to allow target component/data to render
+        let attempts = 0;
+        const maxAttempts = 20; // ~2 seconds (20 * 100ms)
+        const tryScroll = () => {
+          const el = document.getElementById(frag);
+          if (el) {
+            el.scrollIntoView({ behavior: 'smooth' });
+          } else if (attempts < maxAttempts) {
+            attempts += 1;
+            setTimeout(tryScroll, 100);
+          } else {
+            window.scrollTo(0, 0);
+          }
+        };
+        tryScroll();
+      } else {
+        window.scrollTo(0, 0);
+      }
+    };
+
     window.addEventListener('hashchange', onHashChange);
+    // handle initial hash (in case page loaded with fragment)
+    onHashChange();
     return () => window.removeEventListener('hashchange', onHashChange);
   }, []);
 
@@ -54,8 +85,9 @@ function App() {
     return () => { mounted = false; clearInterval(interval); };
   }, []);
 
-  const layananRef = useRef(null);
-  useOutsideClick([layananRef], () => {});
+  const mobileMenuRef = useRef(null);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  useOutsideClick([mobileMenuRef], () => setMobileOpen(false));
 
   const layananItems = [
     'KK', 'KTP', 'KIA', 'Pindah Datang', 'Pindah Keluar', 'Kutipan Ke-2 (Akta Kelahiran)'
@@ -109,8 +141,27 @@ function App() {
             <a href="#/kontak" onClick={e => { e.preventDefault(); navigate('/kontak'); }}>Kontak</a>
           </div>
 
-          <div className="md:hidden">
-            <MobileMenu navigate={navigate} />
+          <div className="md:hidden relative" ref={mobileMenuRef}>
+            <button
+              onClick={() => setMobileOpen(v => !v)}
+              aria-expanded={mobileOpen}
+              aria-label="Toggle menu"
+              className="p-2 rounded-md focus:outline-none"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                {mobileOpen ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+
+            {mobileOpen && (
+              <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded shadow-md z-50">
+                <MobileMenu navigate={navigate} onClose={() => setMobileOpen(false)} />
+              </div>
+            )}
           </div>
         </div>
       </nav>
@@ -186,14 +237,20 @@ function App() {
   );
 }
 
-function MobileMenu({ navigate }) {
+function MobileMenu({ navigate, onClose }) {
+  const handleNav = (e, to) => {
+    e.preventDefault();
+    navigate(to);
+    if (onClose) onClose();
+  };
+
   return (
-    <div className="relative">
-      <a href="#/" onClick={e => { e.preventDefault(); navigate('/'); }} className="block p-2">Beranda</a>
-      <a href="#/profil" onClick={e => { e.preventDefault(); navigate('/profil'); }} className="block p-2">Profil</a>
-      <a href="#/layanan" onClick={e => { e.preventDefault(); navigate('/layanan'); }} className="block p-2">Layanan</a>
-      <a href="#/informasi" onClick={e => { e.preventDefault(); navigate('/informasi'); }} className="block p-2">Informasi</a>
-      <a href="#/kontak" onClick={e => { e.preventDefault(); navigate('/kontak'); }} className="block p-2">Kontak</a>
+    <div className="p-2">
+      <a href="#/" onClick={e => handleNav(e, '/')} className="block p-2">Beranda</a>
+      <a href="#/profil" onClick={e => handleNav(e, '/profil')} className="block p-2">Profil</a>
+      <a href="#/layanan" onClick={e => handleNav(e, '/layanan')} className="block p-2">Layanan</a>
+      <a href="#/informasi" onClick={e => handleNav(e, '/informasi')} className="block p-2">Informasi</a>
+      <a href="#/kontak" onClick={e => handleNav(e, '/kontak')} className="block p-2">Kontak</a>
     </div>
   );
 }

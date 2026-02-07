@@ -47,10 +47,12 @@ const defaultHomeData = {
 
 // --- REMOTE API ---
 const API_URL = 'https://desakarangkepoh2011.github.io/website-data/data/home.json';
+const INFO_URL = 'https://desakarangkepoh2011.github.io/website-data/data/informasi.json';
 
 function formatDate(dateStr) {
   try {
     const d = new Date(dateStr);
+    if (isNaN(d)) return dateStr;
     return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
   } catch {
     return dateStr;
@@ -86,7 +88,16 @@ function normalizeApiData(api) {
     tanggal: api.pengumuman?.tanggal ? formatDate(api.pengumuman.tanggal) : defaultHomeData.pengumuman.tanggal,
     judul: api.pengumuman?.judul || defaultHomeData.pengumuman.judul,
     isi: api.pengumuman?.isi || defaultHomeData.pengumuman.isi,
-    link: api.pengumuman?.link || defaultHomeData.pengumuman.link
+    link: (() => {
+      const raw = api.pengumuman?.link;
+      if (!raw) return defaultHomeData.pengumuman.link;
+      let s = String(raw).trim();
+      if (s.startsWith('#')) s = `/informasi${s}`;
+      else if (!/^https?:\/\//i.test(s) && !s.startsWith('/')) s = `/${s}`;
+      // Ensure link targets informasi pengumuman section
+      if (!s.includes('informasi') && !s.includes('#pengumuman')) return '/informasi#pengumuman';
+      return s;
+    })()
   };
 
   const videoProfil = {
@@ -115,6 +126,7 @@ function normalizeApiData(api) {
 
 export default function Home({ navigate }) {
   const [homeData, setHomeData] = useState(defaultHomeData);
+  const [latestNews, setLatestNews] = useState([]);
 
   useEffect(() => {
     let mounted = true;
@@ -151,7 +163,37 @@ export default function Home({ navigate }) {
     return () => { mounted = false; if (intervalId) clearInterval(intervalId); };
   }, []);
 
+  useEffect(() => {
+    let mounted = true;
+    async function fetchInformasi() {
+      try {
+        const res = await fetch(INFO_URL, { cache: 'no-cache' });
+        if (!res.ok) throw new Error('Network response was not ok');
+        const json = await res.json();
+        if (!mounted) return;
+        const items = Array.isArray(json?.berita?.items) ? json.berita.items.slice() : [];
+        items.sort((a, b) => new Date(b.date) - new Date(a.date));
+        setLatestNews(items.slice(0, 3));
+      } catch (err) {
+        console.warn('Failed to fetch informasi.json for latest news', err);
+      }
+    }
+
+    fetchInformasi();
+    const POLL_INTERVAL = 60000;
+    const id = setInterval(() => { if (document.visibilityState === 'visible') fetchInformasi(); }, POLL_INTERVAL);
+    return () => { mounted = false; clearInterval(id); };
+  }, []);
+
   const { hero, pengumuman, videoProfil, statistik, layananSection } = homeData;
+  const cardWidthClass = (() => {
+    return 'w-full';
+  })();
+  const containerGridClass = (() => {
+    if (latestNews.length === 1) return 'grid grid-cols-1 gap-4 max-w-2xl mx-auto';
+    if (latestNews.length === 2) return 'grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-4xl mx-auto';
+    return 'grid grid-cols-1 sm:grid-cols-3 gap-4 max-w-6xl mx-auto';
+  })();
 
   return (
     <>
@@ -203,6 +245,46 @@ export default function Home({ navigate }) {
             </div>
           </div>
         </section>
+
+        {/* BERITA TERBARU */}
+        <section id="berita-terbaru" className="py-12 bg-gray-50">
+          <div className="site-container">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">Berita Terbaru</h2>
+              <div className="h-1 w-20 bg-desa-primary mx-auto"></div>
+            </div>
+
+            {latestNews.length === 0 ? (
+              <div className="text-center text-gray-500 max-w-6xl mx-auto">Memuat berita...</div>
+            ) : (
+              <div className={`${containerGridClass} mb-6 px-2`}> 
+                {latestNews.map((item) => (
+                  <article key={item.id} className={`flex flex-col bg-white p-0 rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition overflow-hidden ${cardWidthClass}`}>
+                    {item.img && (
+                      <div className="w-full h-40 flex-shrink-0 overflow-hidden">
+                        <img src={item.img} alt={item.title} className="w-full h-full object-cover" />
+                      </div>
+                    )}
+                    <div className="p-5 flex-1 flex flex-col">
+                      <div className="text-xs text-gray-400 mb-2">{formatDate(item.date)}</div>
+                      <h3 className="font-bold text-gray-900 mb-2 leading-tight">{item.title}</h3>
+                      <p className="text-sm text-gray-600 mb-4">{truncateText(item.body, 120)}</p>
+                      <div className="mt-auto flex justify-end">
+                        <a href="/informasi" onClick={(e) => { e.preventDefault(); navigate('/informasi'); }} className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-semibold text-gray-700 hover:text-white hover:bg-[var(--desa-primary)] hover:border-[var(--desa-primary)] transition">Selengkapnya</a>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            )}
+
+            <div className="text-center">
+              <a href="/informasi" onClick={(e) => { e.preventDefault(); navigate('/informasi'); }} className="btn btn-primary">Lihat semua berita</a>
+            </div>
+          </div>
+        </section>
+
+        
 
         {/* PROFIL VIDEO SECTION */}
         <section id="profil" className="py-12 bg-white">

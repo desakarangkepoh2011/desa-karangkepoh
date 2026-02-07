@@ -43,6 +43,25 @@ export default function Informasi() {
   const [annoPage, setAnnoPage] = useState(1);
   const [modal, setModal] = useState(null);
 
+  useEffect(() => {
+    if (!modal) return;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setModal(null);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [modal]);
+
+  useEffect(() => {
+    // prevent background scroll when modal is open
+    if (modal) {
+      const prev = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => { document.body.style.overflow = prev; };
+    }
+    return undefined;
+  }, [modal]);
+
   const newsLimit = 6;
   const annoLimit = 5;
 
@@ -109,8 +128,15 @@ export default function Informasi() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {newsSlice.map(item => (
-              <article key={item.id} className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition group">
-                <div className="relative h-48 overflow-hidden">
+              <article
+                key={item.id}
+                role="button"
+                tabIndex={0}
+                onClick={() => setModal(item)}
+                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setModal(item); }}
+                className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden hover:shadow-lg transition group cursor-pointer"
+              >
+                <div className="relative w-full max-h-52 overflow-hidden">
                   <img src={item.img} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-500" />
                   <div className="absolute top-3 right-3 bg-white/90 px-2 py-1 rounded text-xs font-bold shadow text-desa-dark">{item.category}</div>
                 </div>
@@ -122,9 +148,6 @@ export default function Informasi() {
                   </div>
                   <h3 className="font-bold text-gray-900 leading-snug group-hover:text-[var(--desa-primary)] transition line-clamp-2">{item.title}</h3>
                   <p className="mt-3 text-sm text-gray-600 line-clamp-3">{item.body}</p>
-                  <div className="mt-4 flex gap-2">
-                    <button onClick={() => setModal(item)} className="text-xs font-bold text-[var(--desa-primary)] uppercase tracking-wide hover:underline">Baca Detail &rarr;</button>
-                  </div>
                 </div>
               </article>
             ))}
@@ -198,29 +221,42 @@ export default function Informasi() {
 
       {/* MODAL DETAIL BERITA */}
       {modal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-xl max-w-2xl w-full overflow-hidden shadow-2xl transform transition-all scale-100">
-            <div className="relative h-64 bg-gray-200">
-              <img src={modal.img} alt={modal.title} className="w-full h-full object-cover" />
-              <button 
-                onClick={() => setModal(null)} 
-                className="absolute top-4 right-4 bg-black/50 text-white w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/80 transition"
-              >
-                <i className="fas fa-times"></i>
-              </button>
-            </div>
-            <div className="p-8">
-              <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
-                <span className="font-semibold bg-gray-100 px-2 py-1 rounded">{modal.category}</span>
-                <span>•</span>
-                <span>{formatDateString(modal.date)}</span>
-                <span>•</span>
-                <span>{modal.author}</span>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-fade-in"
+          onClick={(e) => { if (e.target === e.currentTarget) setModal(null); }}
+        >
+          <div className="bg-white rounded-xl max-w-2xl w-full shadow-2xl transform transition-all scale-100 relative overflow-hidden box-border flex flex-col" style={{ maxHeight: 'calc(100vh - 48px)' }}>
+            <button
+              onClick={() => setModal(null)}
+              aria-label="Tutup detail berita"
+              className="absolute top-3 right-3 z-50 bg-white/90 text-gray-700 w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 transition border"
+            >
+              <i className="fas fa-times"></i>
+            </button>
+
+            <div className="w-full flex flex-col overflow-hidden">
+              <div className="w-full h-56 md:h-64 flex-shrink-0 overflow-hidden">
+                <img src={modal.img} alt={modal.title} className="w-full h-full object-cover" />
               </div>
-              <h3 className="text-2xl font-bold mb-4 text-gray-900 leading-tight">{modal.title}</h3>
-              <div className="prose prose-sm text-gray-600 leading-relaxed" dangerouslySetInnerHTML={{ __html: `<p>${modal.body}</p><p className='italic mt-4 text-gray-400'>*Informasi lebih lanjut dapat menghubungi Kantor Desa.</p>` }} />
-              <div className="mt-8 pt-4 border-t border-gray-100 flex justify-end">
-                <button onClick={() => setModal(null)} className="px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition">Tutup</button>
+
+              <div className="p-6 md:p-8 overflow-y-auto" style={{ flex: '1 1 auto', WebkitOverflowScrolling: 'touch' }}>
+                <div className="flex items-center gap-2 text-xs text-gray-500 mb-3">
+                  <span className="font-semibold bg-gray-100 px-2 py-1 rounded">{modal.category}</span>
+                  <span>•</span>
+                  <span>{formatDateString(modal.date)}</span>
+                  <span>•</span>
+                  <span>{modal.author}</span>
+                </div>
+                <h3 className="text-2xl font-bold mb-4 text-gray-900 leading-tight">{modal.title}</h3>
+                <div className="prose prose-sm text-gray-600 leading-relaxed" dangerouslySetInnerHTML={{ __html: `<p>${modal.body}</p>` }} />
+                <div className="mt-6 pt-4">
+                  <div className="border-t border-gray-100" />
+                  <div className="sticky bottom-0 bg-white/90 pt-4 pb-4 -mx-6 md:-mx-8 z-40">
+                    <div className="flex justify-end px-6 md:px-8">
+                      <button onClick={() => setModal(null)} className="px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition">Tutup</button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
