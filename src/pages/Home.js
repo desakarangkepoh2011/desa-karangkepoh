@@ -160,7 +160,10 @@ export default function Home({ navigate }) {
         <div className="absolute inset-0 bg-black/60"></div>
         <div className="relative z-10 text-center px-6 max-w-4xl mx-auto text-white">
           <span className="block text-desa-light font-semibold tracking-wider mb-2 uppercase">{hero.preTitle}</span>
-          <h1 className="text-3xl md:text-5xl font-bold mb-4">{hero.title} <span className="text-green-300">{hero.highlight}</span></h1>
+          <h1 className="text-3xl md:text-5xl font-bold mb-4">
+            {hero.title}
+            <span className="block text-green-300">{hero.highlight}</span>
+          </h1>
           <p className="text-gray-200 mb-6">{hero.description}</p>
           <div className="flex gap-4 justify-center">
             <a href="/layanan" onClick={(e) => { e.preventDefault(); navigate('/layanan'); }} className="btn btn-primary">Layanan Desa</a>
