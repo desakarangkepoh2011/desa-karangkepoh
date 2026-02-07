@@ -71,6 +71,27 @@ function App() {
     }
   };
 
+  const ensureUrl = (u) => {
+    if (!u) return null;
+    const s = String(u).trim();
+    if (/^mailto:|^tel:|^https?:\/\//i.test(s)) return s;
+    return s.startsWith('wa.me') || s.includes('wa.me') ? (s.startsWith('http') ? s : `https://${s}`) : (s.startsWith('http') ? s : `https://${s}`);
+  };
+
+  const formatWaLink = (numOrLink) => {
+    if (!numOrLink) return null;
+    const s = String(numOrLink).trim();
+    if (/^[+0-9].*/.test(s) && !s.includes('http')) {
+      const digits = s.replace(/[^0-9]/g, '');
+      return digits ? `https://wa.me/${digits}` : null;
+    }
+    return ensureUrl(s);
+  };
+
+  const layananInfo = kontakData?.layananInfo;
+  const mediaSosial = kontakData?.mediaSosial;
+  const kantor = kontakData?.kantorDesa;
+
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
       <nav className="relative w-full bg-white shadow-sm">
@@ -99,10 +120,10 @@ function App() {
       <footer className="bg-gray-900 text-white py-10">
         <div className="site-container grid md:grid-cols-3 gap-6">
           <div className="md:col-span-2 bg-gray-800/40 p-4 rounded">
-            <h4 className="font-semibold mb-3">Lokasi Kantor Desa</h4>
+            <h4 className="font-semibold mb-3">{kantor?.title || 'Lokasi Kantor Desa'}</h4>
             <iframe
               title="Lokasi Kantor Desa"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d608.8321717890612!2d110.67218976514518!3d-7.357801800785103!"
+              src={kantor?.mapUrl || 'https://www.google.com/maps?q=-7.357801800785103,110.67218976514518&z=15&output=embed'}
               width="100%"
               height="240"
               style={{ border: 0 }}
@@ -112,8 +133,47 @@ function App() {
 
           <div className="bg-gray-800/40 p-4 rounded">
             <h4 className="font-semibold mb-3">Kontak & Informasi</h4>
-            {kontakData?.kantorDesa ? (
-              <p className="text-sm">{kontakData.kantorDesa.address}</p>
+            {kontakData ? (
+              <div className="text-sm space-y-2">
+
+                {layananInfo && (
+                  <div className="mt-2">
+                    {layananInfo.description && <div className="text-sm">{layananInfo.description}</div>}
+                    {layananInfo.waLink && <div>WhatsApp: <a href={formatWaLink(layananInfo.waLink)} target="_blank" rel="noreferrer" className="text-blue-300 underline">{layananInfo.phoneDisplay || layananInfo.waLink}</a></div>}
+                  </div>
+                )}
+
+                {mediaSosial?.items && (
+                  <div className="mt-2">
+                    <div className="font-semibold">{mediaSosial.title || 'Medsos'}</div>
+                    <div className="flex gap-2 mt-1">
+                      {mediaSosial.items.map((m, i) => (
+                        <a key={i} href={ensureUrl(m.url)} target="_blank" rel="noreferrer" className={`inline-flex items-center gap-2 px-2 py-1 border rounded text-sm ${m.colorClass || ''}`}>
+                          {m.icon && <i className={m.icon} aria-hidden />}
+                          <span>{m.name}</span>
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {kantor && (
+                  <div className="mt-2">
+                    {kantor.address && <div>{kantor.address}</div>}
+                    {kantor.email && <div>Email: <a href={`mailto:${kantor.email}`} className="text-blue-300 underline">{kantor.email}</a></div>}
+                    {kantor.jamKerja && (
+                      <div className="mt-1">
+                        <div className="font-semibold">Jam Layanan</div>
+                        <ul className="list-inside list-disc">
+                          {kantor.jamKerja.map((j, idx) => (
+                            <li key={idx}>{j.hari}: {j.jam}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             ) : (
               <p className="text-sm">Memuat data kontak...</p>
             )}
