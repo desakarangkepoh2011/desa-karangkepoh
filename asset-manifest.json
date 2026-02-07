@@ -1,16 +1,16 @@
 {
   "files": {
     "main.css": "/static/css/main.9ec76a92.css",
-    "main.js": "/static/js/main.88454ae9.js",
+    "main.js": "/static/js/main.a1cbc4ec.js",
     "static/js/453.97659429.chunk.js": "/static/js/453.97659429.chunk.js",
     "static/media/logo-boyolali.png": "/static/media/logo-boyolali.b002065d20616b2fd331.png",
     "index.html": "/index.html",
     "main.9ec76a92.css.map": "/static/css/main.9ec76a92.css.map",
-    "main.88454ae9.js.map": "/static/js/main.88454ae9.js.map",
+    "main.a1cbc4ec.js.map": "/static/js/main.a1cbc4ec.js.map",
     "453.97659429.chunk.js.map": "/static/js/453.97659429.chunk.js.map"
   },
   "entrypoints": [
     "static/css/main.9ec76a92.css",
-    "static/js/main.88454ae9.js"
+    "static/js/main.a1cbc4ec.js"
   ]
 }
