@@ -191,7 +191,7 @@ export default function Informasi() {
                   <h4 className="font-bold text-gray-800 text-lg group-hover:text-[var(--desa-primary)] transition">{a.title}</h4>
                   <p className="text-sm text-gray-600 mt-1">{a.desc}</p>
                 </div>
-                <a href={a.linkUrl} onClick={(e) => e.preventDefault()} className="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-semibold text-gray-700 hover:text-white hover:bg-[var(--desa-primary)] hover:border-[var(--desa-primary)] transition shadow-sm whitespace-nowrap">
+                <a href={a.linkUrl} target="_blank" rel="noopener noreferrer" className="flex-shrink-0 inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-semibold text-gray-700 hover:text-white hover:bg-[var(--desa-primary)] hover:border-[var(--desa-primary)] transition shadow-sm whitespace-nowrap">
                   <i className={`fas ${a.linkText.toLowerCase().includes('pdf') ? 'fa-file-pdf' : 'fa-download'}`}></i> {a.linkText}
                 </a>
               </div>
