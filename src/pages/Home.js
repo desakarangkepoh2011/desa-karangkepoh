@@ -330,14 +330,14 @@ export default function Home({ navigate }) {
                     <i className="fas fa-file-alt text-2xl"></i>
                   </div>
                   <h3 className="text-xl font-bold mb-3 text-gray-800">{item.label}</h3>
-                  <p className="text-gray-500 mb-6 text-sm leading-relaxed">Permohonan layanan {item.label} secara online melalui sistem desa.</p>
+                  <p className="text-gray-500 mb-6 text-sm leading-relaxed">Permohonan layanan {item.label} oleh desa.</p>
                   {/* UPDATED: Navigasi mengirim parameter query ?open=ID */}
                   <a 
                     href={`/layanan?open=${item.id}`} 
                     onClick={(e) => { e.preventDefault(); navigate(`/layanan?open=${item.id}`); }} 
                     className="btn-link"
                   >
-                    Buat Surat <i className="fas fa-arrow-right ml-2 text-xs"></i>
+                    Lihat Persyaratan <i className="fas fa-arrow-right ml-2 text-xs"></i>
                   </a>
                 </div>
               ))}
