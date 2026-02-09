@@ -88,16 +88,7 @@ function normalizeApiData(api) {
     tanggal: api.pengumuman?.tanggal ? formatDate(api.pengumuman.tanggal) : defaultHomeData.pengumuman.tanggal,
     judul: api.pengumuman?.judul || defaultHomeData.pengumuman.judul,
     isi: api.pengumuman?.isi || defaultHomeData.pengumuman.isi,
-    link: (() => {
-      const raw = api.pengumuman?.link;
-      if (!raw) return defaultHomeData.pengumuman.link;
-      let s = String(raw).trim();
-      if (s.startsWith('#')) s = `/informasi${s}`;
-      else if (!/^https?:\/\//i.test(s) && !s.startsWith('/')) s = `/${s}`;
-      // Ensure link targets informasi pengumuman section
-      if (!s.includes('informasi') && !s.includes('#pengumuman')) return '/informasi#pengumuman';
-      return s;
-    })()
+    link: api.pengumuman?.link || defaultHomeData.pengumuman.link
   };
 
   const videoProfil = {

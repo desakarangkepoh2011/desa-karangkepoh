@@ -42,6 +42,7 @@ export default function Informasi() {
   const [newsPage, setNewsPage] = useState(1);
   const [annoPage, setAnnoPage] = useState(1);
   const [modal, setModal] = useState(null);
+  const [mediaItem, setMediaItem] = useState(null);
 
   useEffect(() => {
     if (!modal) return;
@@ -98,6 +99,7 @@ export default function Informasi() {
   }
 
   const { hero, berita, pengumuman } = data;
+  const media = (data && data.media && Array.isArray(data.media.items) && data.media.items.length) ? data.media : { title: 'Media Desa', items: [] };
 
   const totalNewsPages = Math.ceil((berita && berita.items ? berita.items.length : 0) / newsLimit);
   const totalAnnoPages = Math.ceil((pengumuman && pengumuman.items ? pengumuman.items.length : 0) / annoLimit);
@@ -217,7 +219,110 @@ export default function Informasi() {
             </div>
           )}
         </section>
+        {/* BAGIAN MEDIA DESA */}
+        <section id="media-desa" className="bg-white rounded-2xl p-6 md:p-8 shadow-sm border border-gray-200">
+          <div className="flex items-center justify-between mb-6 border-b border-gray-100 pb-4">
+              <h2 className="text-2xl font-bold border-l-4 border-[var(--desa-primary)] pl-3">{(media && media.title) ? media.title : 'Media Desa'}</h2>
+              <div className="text-sm text-gray-600">Foto & Video kegiatan desa</div>
+            </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {(media && media.items ? media.items : []).slice(0, 12).map(m => {
+              const thumb = m.img || m.thumbnail || m.src || m.link;
+              const label = m.title || '';
+              return (
+                <button
+                  key={m.id || thumb || Math.random()}
+                  onClick={() => setMediaItem(m)}
+                  className="group bg-gray-50 rounded-lg overflow-hidden border border-gray-100 hover:shadow-md transition text-left"
+                  aria-label={m.title || 'Media desa'}
+                >
+                  <div className="w-full h-36 overflow-hidden bg-gray-200 flex items-center justify-center">
+                    {thumb ? (
+                      <img src={thumb} alt={m.title} className="w-full h-full object-cover group-hover:scale-105 transition duration-300" />
+                    ) : (
+                      <div className="text-gray-400 text-3xl">▶</div>
+                    )}
+                  </div>
+                  <div className="p-3">
+                    <div className="text-sm font-semibold text-gray-800 truncate">{label}</div>
+                    <div className="text-xs text-gray-400 mt-1">{formatDateString(m.date)}</div>
+                    {m.link && (
+                      <div className="mt-3">
+                        <a href={m.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-1 bg-white border border-gray-200 rounded text-xs text-gray-700 hover:bg-gray-50">
+                          Lihat semua media
+                        </a>
+                      </div>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          
+        </section>
       </div>
+
+      {/* MODAL MEDIA (FOTO / VIDEO) */}
+      {mediaItem && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm animate-fade-in"
+          onClick={(e) => { if (e.target === e.currentTarget) { setMediaItem(null); } }}
+        >
+          <div className="bg-white rounded-xl max-w-3xl w-full shadow-2xl transform transition-all relative overflow-hidden flex flex-col" style={{ maxHeight: 'calc(100vh - 48px)' }}>
+            {(mediaItem.link && mediaItem.link.trim() !== '') && (
+              <a href={mediaItem.link} target="_blank" rel="noopener noreferrer" aria-label="Lihat lainnya" className="absolute top-3 left-3 z-50 inline-flex items-center gap-2 px-3 py-1 bg-[var(--desa-primary)] text-white rounded hover:opacity-90">
+                <i className="fas fa-external-link-alt"></i>
+                <span className="text-sm">Lihat lainnya</span>
+              </a>
+            )}
+            <button
+              onClick={() => { setMediaItem(null); }}
+              aria-label="Tutup media"
+              className="absolute top-3 right-3 z-50 bg-white/90 text-gray-700 w-8 h-8 rounded-full flex items-center justify-center hover:bg-gray-100 transition border"
+            >
+              <i className="fas fa-times"></i>
+            </button>
+
+            <div className="w-full flex flex-col overflow-hidden">
+              <div className="w-full h-64 flex-shrink-0 overflow-hidden bg-black flex items-center justify-center relative">
+                {
+                  (
+                    mediaItem.type === 'video' || mediaItem.videoUrl ? (
+                      (mediaItem.videoUrl && mediaItem.videoUrl.includes('youtube')) ? (
+                        <iframe title={mediaItem.title} className="w-full h-full" src={mediaItem.videoUrl.replace('watch?v=', 'embed/')} frameBorder="0" allowFullScreen />
+                      ) : (
+                        <video className="w-full h-full object-cover" controls src={mediaItem.videoUrl} />
+                      )
+                    ) : (
+                      <img src={mediaItem.img || mediaItem.link || mediaItem.src || mediaItem.thumbnail} alt={mediaItem.title} className="w-full h-full object-cover" />
+                    )
+                  )
+                }
+              </div>
+
+              <div className="p-6 overflow-y-auto" style={{ flex: '1 1 auto' }}>
+                <div className="text-xs text-gray-500 mb-2">{formatDateString(mediaItem.date)}</div>
+                <h3 className="text-2xl font-bold mb-3 text-gray-900">{mediaItem.title}</h3>
+                <div className="mt-4">
+                  <h4 className="font-semibold mb-2">Lampiran</h4>
+                  {(mediaItem.link && mediaItem.link.trim() !== '') ? (
+                    <a href={mediaItem.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded hover:bg-gray-50 text-sm">
+                      <span className="text-gray-600">Buka lampiran</span>
+                    </a>
+                  ) : (
+                    <div className="text-sm text-gray-500">Tidak ada lampiran</div>
+                  )}
+                </div>
+
+                <div className="mt-6 flex justify-end">
+                  <button onClick={() => { setMediaItem(null); }} className="px-5 py-2.5 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition">Tutup</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* MODAL DETAIL BERITA */}
       {modal && (
